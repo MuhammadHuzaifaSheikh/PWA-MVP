@@ -15,7 +15,7 @@ import InstaScreen from "./screens/InstaScreen";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { setBlogs } from "./store/Slices/BlogSlice";
 import { setBaby } from "./store/Slices/BabySlice";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { useDispatch, useSelector } from "react-redux";
 import { setSuggestedWeek, setMyTodoWeek } from "./store/Slices/WeekSlice";
 
@@ -35,18 +35,33 @@ function App() {
   const day = useSelector((state) => state.week.day);
 
   const week = useSelector((state) => state.week.week);
+
   useEffect(() => {
     async function getUser() {
       const docRef = doc(db, "users", localStorage.getItem("userID"));
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
+        console.log("Document data:", docSnap.data());
+        dispatch(setSuggestedWeek(week));
+        dispatch(setMyTodoWeek(week));
+      } else {
+        // doc.data() will be undefined in this case
+        console.log("No such document!");
+      }
+    }
+    getUser();
+  }, []);
+
+  useEffect(() => {
+    const unsub = onSnapshot(
+      doc(db, "users", localStorage.getItem("userID")),
+      (docSnap) => {
         dispatch(setUserName(docSnap.data().username));
         dispatch(setAddToMyTask(docSnap.data().addToMyTasks));
         dispatch(setEmailAddress(docSnap.data().emailAddress));
         dispatch(setUserId(docSnap.data().id));
-        dispatch(setSuggestedWeek(week));
-        dispatch(setMyTodoWeek(week));
+
         dispatch(
           setPregnancyDueDate(
             docSnap.data().pregnancy_dueDate
@@ -83,12 +98,10 @@ function App() {
         dispatch(
           setFullName(docSnap.data().fullName ? docSnap.data().fullName : "")
         );
-      } else {
-        // doc.data() will be undefined in this case
-        console.log("No such document!");
       }
-    }
-    getUser();
+    );
+
+    return () => unsub();
   }, []);
 
   useEffect(() => {

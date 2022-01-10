@@ -6,13 +6,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { setSuggestedTodos } from "../store/Slices/SuggestedSlice";
 import { setUserTodoss } from "../store/Slices/UserSlice";
 import KeyboardArrowDownSharpIcon from "@mui/icons-material/KeyboardArrowDownSharp";
-import { setDoc, doc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { updateDoc, doc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { setSuggestedWeek } from "../store/Slices/WeekSlice";
 import { db } from "../config/Firebase";
 
 export default function TodoScreen() {
   const dispatch = useDispatch();
   const { suggestedTodoWeek } = useSelector((state) => state.week);
+
+  console.log("suggestedTodoWeek", suggestedTodoWeek);
 
   const [suggestedTodoss, setSuggestedTodoss] = React.useState([]);
   const [show, setshow] = React.useState(false);
@@ -22,7 +24,7 @@ export default function TodoScreen() {
   const user_Todos = user.user_todos;
   const [userTodos, setUserTodos] = React.useState([]);
   const [isOpen, setIsOpen] = React.useState(false);
-  const [s, setS] = React.useState([]);
+  const [suggestedUserTodos, setSuggestedUserTodos] = React.useState([]);
 
   React.useEffect(() => {
     onSnapshot(collection(db, "suggested_todos"), (snapshot) =>
@@ -30,12 +32,14 @@ export default function TodoScreen() {
     );
   }, []);
 
+  console.log("suggestedTodoss", suggestedTodoss);
+
   React.useEffect(() => {
     const filteredTodos = suggestedTodoss.filter(
       (todo) => todo.suggested_todo_week === suggestedTodoWeek
     );
     dispatch(setSuggestedTodos(filteredTodos));
-    setS(filteredTodos);
+    setSuggestedUserTodos(filteredTodos);
   }, [suggestedTodoss, suggestedTodoWeek]);
   React.useEffect(() => {
     return () => {
@@ -55,7 +59,7 @@ export default function TodoScreen() {
       user_todos: arrayUnion(todo),
     };
 
-    setDoc(docRef, payload);
+    updateDoc(docRef, payload);
     dispatch(setUserTodoss(todo));
   };
 
@@ -67,7 +71,7 @@ export default function TodoScreen() {
     const payload = {
       user_todos: arrayRemove(todo),
     };
-    setDoc(docRef, payload);
+    updateDoc(docRef, payload);
   };
   let dropdownData = [];
   for (let i = 1; i < 41; i++) {
@@ -99,10 +103,10 @@ export default function TodoScreen() {
         <h1>Week {suggestedTodoWeek}</h1>
       </div>
       {navigator.onLine ? (
-        s.map((todo) => {
+        suggestedUserTodos.map((todo) => {
           let isValid = false;
           for (let i = 0; i < user_Todos.length; i++) {
-            if (user_Todos[i].user_todo_id === todo.id) {
+            if (user_Todos[i].id === todo.id) {
               isValid = true;
             }
           }

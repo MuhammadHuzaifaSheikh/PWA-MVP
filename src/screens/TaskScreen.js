@@ -20,13 +20,15 @@ export default function TaskScreen() {
   const user = useSelector((state) => state.user);
   let userTodos = user.user_todos;
 
+  console.log("userTodos", userTodos);
+
   React.useEffect(() => {
     const filteredTodos = userTodos.filter(
-      (todo) => todo.user_todo_week === myTodoWeek
+      (todo) => todo.suggested_todo_week === myTodoWeek
     );
     // dispatch(setUserTodoss(filteredTodos));
     // setS(filteredTodos);
-    console.log(filteredTodos);
+    console.log("filteredTodos", filteredTodos);
     setUserTodosState(filteredTodos);
   }, [userTodos, myTodoWeek]);
 
@@ -36,35 +38,36 @@ export default function TaskScreen() {
     };
   }, []);
   const handleTaskComplete = (todo) => {
-    const objIndex = user.user_todos.findIndex(
-      (obj) => obj.user_todo_id === todo.user_todo_id
-    );
-    let newUserTodos = [];
-    if (objIndex >= 0) {
-      const status = todo.user_todo_completionStatus;
-      const user_todo = {
-        user_todo_id: todo.user_todo_id,
-        user_todo_completionStatus: !status,
-        user_todo_title: todo.user_todo_title,
-        user_todo_week: todo.user_todo_week,
-      };
+    console.log("todo", todo);
+    // const objIndex = user.user_todos.findIndex(
+    //   (obj) => obj.user_todo_id === todo.user_todo_id
+    // );
+    // let newUserTodos = [];
+    // if (objIndex >= 0) {
+    //   const status = todo.user_todo_completionStatus;
+    //   const user_todo = {
+    //     user_todo_id: todo.user_todo_id,
+    //     user_todo_completionStatus: !status,
+    //     user_todo_title: todo.user_todo_title,
+    //     user_todo_week: todo.suggested_todo_week,
+    //   };
 
-      newUserTodos = userTodos.map((todo, index) => {
-        return index === objIndex ? user_todo : todo;
-      });
+    //   newUserTodos = userTodos.map((todo, index) => {
+    //     return index === objIndex ? user_todo : todo;
+    //   });
 
-      const docRef = doc(db, "users", localStorage.getItem("userID"));
-      const payload = {
-        pregnancy_dueDate: user.pregnancy_dueDate,
-        emailAddress: user.emailAddress,
-        username: user.username,
-        user_todos: [...newUserTodos],
-        fullName: user.fullName,
-      };
+    //   const docRef = doc(db, "users", localStorage.getItem("userID"));
+    //   const payload = {
+    //     pregnancy_dueDate: user.pregnancy_dueDate,
+    //     emailAddress: user.emailAddress,
+    //     username: user.username,
+    //     user_todos: [...newUserTodos],
+    //     fullName: user.fullName,
+    //   };
 
-      setDoc(docRef, payload);
-      dispatch(setUserTodoss(newUserTodos));
-    }
+    //   setDoc(docRef, payload);
+    //   dispatch(setUserTodoss(newUserTodos));
+    // }
   };
 
   let dropdownData = [];
@@ -99,11 +102,11 @@ export default function TaskScreen() {
       </div>
       <div className="margin-todos">
         {userTodosState?.map((todo) => {
-          return todo.user_todo_week === myTodoWeek ? (
-            <div className="full-width" key={todo.user_todo_id}>
+          return todo.suggested_todo_week === myTodoWeek ? (
+            <div className="full-width" key={todo.id}>
               <div className="check-box-div My-todos">
                 <div className="todo-content">
-                  <p className="">{todo.user_todo_title}</p>
+                  <p className="">{todo.suggested_todo_title}</p>
                 </div>
                 <div onClick={() => handleTaskComplete(todo)}>
                   <Checkbox

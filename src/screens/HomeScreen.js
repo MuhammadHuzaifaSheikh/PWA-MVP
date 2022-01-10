@@ -48,11 +48,11 @@ function HomeScreen() {
     }
 
     const weekCal = Math.ceil(remainingDays / 7);
-    dispatch(setDay(remainingDays));
+    // dispatch(setDay(remainingDays));
     setCurrentDay(remainingDays);
 
     setSelected(remainingDays);
-    dispatch(setWeek(weekCal));
+    // dispatch(setWeek(weekCal));
 
     let arr = [];
     let a = weekCal * 7;
@@ -90,7 +90,7 @@ function HomeScreen() {
       setDATES(arr);
       dispatch(setWeek(week - 1));
 
-      document.getElementById((weekVar * 7 - 13).toString()).scrollIntoView({
+      document.getElementById((week * 7 - 13).toString()).scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
@@ -232,9 +232,9 @@ function HomeScreen() {
         ) : (
           <>
             <p>No Article Found For Day {selected}</p>
-            <div className="loader-container">
+            {/* <div className="loader-container">
               <div className="loader"></div>
-            </div>
+            </div> */}
           </>
         )}
       </div>
