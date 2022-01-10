@@ -8,14 +8,28 @@ import KeyboardArrowDownSharpIcon from "@mui/icons-material/KeyboardArrowDownSha
 import { Link } from "react-router-dom";
 import { setWeek } from "../store/Slices/WeekSlice";
 import { db } from "../config/Firebase";
+import { setMyTodoWeek } from "../store/Slices/WeekSlice";
 
 export default function TaskScreen() {
   const dispatch = useDispatch();
   const [isActive, setIsActive] = React.useState(true);
-  const { week } = useSelector((state) => state.week);
+  const { myTodoWeek } = useSelector((state) => state.week);
+
   const [isOpen, setIsOpen] = React.useState(false);
+  const [userTodosState, setUserTodosState] = React.useState([]);
   const user = useSelector((state) => state.user);
   let userTodos = user.user_todos;
+
+  React.useEffect(() => {
+    const filteredTodos = userTodos.filter(
+      (todo) => todo.user_todo_week === myTodoWeek
+    );
+    // dispatch(setUserTodoss(filteredTodos));
+    // setS(filteredTodos);
+    console.log(filteredTodos);
+    setUserTodosState(filteredTodos);
+  }, [userTodos, myTodoWeek]);
+
   React.useEffect(() => {
     return () => {
       setIsActive(false);
@@ -62,7 +76,7 @@ export default function TaskScreen() {
   };
 
   const handleDateChange = (payload) => {
-    dispatch(setWeek(payload));
+    dispatch(setMyTodoWeek(payload));
     setIsOpen((isOpen) => !isOpen);
   };
 
@@ -81,11 +95,11 @@ export default function TaskScreen() {
         </div>
       </div>
       <div className="week-7">
-        <h1>Week {week}</h1>
+        <h1>Week {myTodoWeek}</h1>
       </div>
       <div className="margin-todos">
-        {user.user_todos?.map((todo) => {
-          return todo.user_todo_week === week ? (
+        {userTodosState?.map((todo) => {
+          return todo.user_todo_week === myTodoWeek ? (
             <div className="full-width" key={todo.user_todo_id}>
               <div className="check-box-div My-todos">
                 <div className="todo-content">
@@ -106,7 +120,7 @@ export default function TaskScreen() {
       <div className="week-container">
         <button className="week-checks" onClick={handleToggle}>
           <div></div>
-          <div>Week {week}</div>
+          <div>Week {myTodoWeek}</div>
           <div>
             <KeyboardArrowDownSharpIcon />
           </div>

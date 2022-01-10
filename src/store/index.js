@@ -7,6 +7,7 @@ import suggestedReducer from './Slices/SuggestedSlice'
 import photosReducer from './Slices/PhotosSlice'
 import BottomSlice from './Slices/BottomSlice'
 import WeekReducer from './Slices/WeekSlice'
+import BabyReducer from './Slices/BabySlice'
 
 
 const store = configureStore({
@@ -17,7 +18,8 @@ const store = configureStore({
         suggestedTodos: suggestedReducer,
         photos: photosReducer,
         bottom: BottomSlice,
-        week: WeekReducer
+        week: WeekReducer,
+        baby: BabyReducer
     },
     middleware: (getDefaultMiddleware) => getDefaultMiddleware({
         serializableCheck: false

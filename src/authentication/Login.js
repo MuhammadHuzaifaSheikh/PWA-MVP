@@ -5,7 +5,7 @@ import LoginBottom from "../components/LoginBottom/LoginBottom";
 import TextField from "@mui/material/TextField";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/Firebase";
-import { collection, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, collection, onSnapshot } from "firebase/firestore";
 import { db } from "../config/Firebase";
 import {
   setUserId,
@@ -24,8 +24,6 @@ export default function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  let [userId, setUserIdd] = React.useState("");
-  let [userDocs, setUserDocs] = React.useState([]);
   let [email, setEmail] = React.useState("");
   let [password, setPassword] = React.useState("");
   let [loading, setLoading] = React.useState(false);
@@ -34,69 +32,68 @@ export default function Login() {
     setLoading(true);
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        setUserIdd(userCredential);
-        onSnapshot(collection(db, "users"), (snapshot) =>
-          setUserDocs(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })))
-        );
+        localStorage.setItem("userID", userCredential.user.uid)
+        getUser()
         setLoading(false);
       })
       .catch((error) => {
         alert(error);
-        console.log(error.message);
         setLoading(false);
       });
   };
 
-  React.useEffect(() => {
-    const loggedInUser = userDocs?.filter((user) => {
-      return user.id === userId.user.uid;
-    });
-    if (loggedInUser.length > 0) {
-      localStorage.setItem("userID", loggedInUser[0].id);
-      dispatch(setUserName(loggedInUser[0].username));
-      dispatch(setAddToMyTask(loggedInUser[0].addToMyTasks));
-      dispatch(setEmailAddress(loggedInUser[0].emailAddress));
-      dispatch(setUserId(loggedInUser[0].id));
+  async function getUser() {
+    const docRef = doc(db, "users", localStorage.getItem("userID"));
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      console.log("Document data:", docSnap.data());
+      dispatch(setUserName(docSnap.data().username));
+      dispatch(setAddToMyTask(docSnap.data().addToMyTasks));
+      dispatch(setEmailAddress(docSnap.data().emailAddress));
+      dispatch(setUserId(docSnap.data().id));
       dispatch(
         setPregnancyDueDate(
-          loggedInUser[0].pregnancy_dueDate
-            ? loggedInUser[0].pregnancy_dueDate
+          docSnap.data().pregnancy_dueDate
+            ? docSnap.data().pregnancy_dueDate
             : ""
         )
       );
       dispatch(
         setUserTodoss(
-          loggedInUser[0].user_todos ? loggedInUser[0].user_todos : []
+          docSnap.data().user_todos ? docSnap.data().user_todos : []
         )
       );
       dispatch(
         setBabyName(
-          loggedInUser[0].pregnancy_babyName
-            ? loggedInUser[0].pregnancy_babyName
+          docSnap.data().pregnancy_babyName
+            ? docSnap.data().pregnancy_babyName
             : ""
         )
       );
       dispatch(
         setBabyGender(
-          loggedInUser[0].pregnancy_babyGender
-            ? loggedInUser[0].pregnancy_babyGender
+          docSnap.data().pregnancy_babyGender
+            ? docSnap.data().pregnancy_babyGender
             : ""
         )
       );
       dispatch(
         setBabyGender(
-          loggedInUser[0].pregnancy_babyGender
-            ? loggedInUser[0].pregnancy_babyGender
+          docSnap.data().pregnancy_babyGender
+            ? docSnap.data().pregnancy_babyGender
             : ""
         )
       );
       dispatch(
-        setFullName(loggedInUser[0].fullName ? loggedInUser[0].fullName : "")
+        setFullName(docSnap.data().fullName ? docSnap.data().fullName : "")
       );
-
-      navigate("/");
+      navigate("/")
+    } else {
+      // doc.data() will be undefined in this case
+      console.log("No such document!");
     }
-  }, [userDocs, userId, dispatch, navigate]);
+  }
 
   return (
     <div>

@@ -6,20 +6,23 @@ import { useDispatch, useSelector } from "react-redux";
 import { setSuggestedTodos } from "../store/Slices/SuggestedSlice";
 import { setUserTodoss } from "../store/Slices/UserSlice";
 import KeyboardArrowDownSharpIcon from "@mui/icons-material/KeyboardArrowDownSharp";
-import { setDoc, doc } from "firebase/firestore";
-import { setWeek } from "../store/Slices/WeekSlice";
+import { setDoc, doc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { setSuggestedWeek } from "../store/Slices/WeekSlice";
 import { db } from "../config/Firebase";
 
 export default function TodoScreen() {
   const dispatch = useDispatch();
+  const { suggestedTodoWeek } = useSelector((state) => state.week);
+
   const [suggestedTodoss, setSuggestedTodoss] = React.useState([]);
   const [show, setshow] = React.useState(false);
   const [isActive, setIsActive] = React.useState(true);
   const user = useSelector((state) => state.user);
-  const { week } = useSelector((state) => state.week);
+  // const [WEEK, setWEEK] = React.useState(week);
   const user_Todos = user.user_todos;
   const [userTodos, setUserTodos] = React.useState([]);
   const [isOpen, setIsOpen] = React.useState(false);
+  const [s, setS] = React.useState([]);
 
   React.useEffect(() => {
     onSnapshot(collection(db, "suggested_todos"), (snapshot) =>
@@ -27,6 +30,13 @@ export default function TodoScreen() {
     );
   }, []);
 
+  React.useEffect(() => {
+    const filteredTodos = suggestedTodoss.filter(
+      (todo) => todo.suggested_todo_week === suggestedTodoWeek
+    );
+    dispatch(setSuggestedTodos(filteredTodos));
+    setS(filteredTodos);
+  }, [suggestedTodoss, suggestedTodoWeek]);
   React.useEffect(() => {
     return () => {
       setIsActive(false);
@@ -38,29 +48,15 @@ export default function TodoScreen() {
   }
 
   const handleAdd = (todo) => {
-    let user_todo = [];
-    for (let i = 0; i < userTodos.length; i++) {
-      user_todo.push(userTodos[i]);
-    }
-    user_todo.push({
-      user_todo_id: todo.id,
-      user_todo_completionStatus: false,
-      user_todo_title: todo.suggested_todo_title,
-      user_todo_week: todo.suggested_todo_week,
-    });
-    setUserTodos(user_todo);
+    console.log("todo", todo);
+
     const docRef = doc(db, "users", localStorage.getItem("userID"));
     const payload = {
-      pregnancy_dueDate: user.pregnancy_dueDate,
-      emailAddress: user.emailAddress,
-      username: user.username,
-      user_todos: [...user_todo],
-      fullName: user.fullName,
-      addToMyTasks: true,
+      user_todos: arrayUnion(todo),
     };
 
     setDoc(docRef, payload);
-    dispatch(setUserTodoss(user_todo));
+    dispatch(setUserTodoss(todo));
   };
 
   const handleRemove = (todo) => {
@@ -69,14 +65,9 @@ export default function TodoScreen() {
     );
     const docRef = doc(db, "users", localStorage.getItem("userID"));
     const payload = {
-      pregnancy_dueDate: user.pregnancy_dueDate,
-      emailAddress: user.emailAddress,
-      username: user.username,
-      user_todos: [...filteredUserTodos],
-      fullName: user.fullName,
+      user_todos: arrayRemove(todo),
     };
     setDoc(docRef, payload);
-    dispatch(setUserTodoss(filteredUserTodos));
   };
   let dropdownData = [];
   for (let i = 1; i < 41; i++) {
@@ -88,9 +79,10 @@ export default function TodoScreen() {
     setIsOpen((isOpen) => !isOpen);
   };
   const handleDateChange = (payload) => {
-    dispatch(setWeek(payload));
+    dispatch(setSuggestedWeek(payload));
     setIsOpen((isOpen) => !isOpen);
   };
+
   return (
     <div className="todo-main-div">
       <div className="suggest">
@@ -104,10 +96,10 @@ export default function TodoScreen() {
         </div>
       </div>
       <div className="week-7">
-        <h1>Week {week}</h1>
+        <h1>Week {suggestedTodoWeek}</h1>
       </div>
       {navigator.onLine ? (
-        suggestedTodoss.map((todo) => {
+        s.map((todo) => {
           let isValid = false;
           for (let i = 0; i < user_Todos.length; i++) {
             if (user_Todos[i].user_todo_id === todo.id) {
@@ -115,21 +107,21 @@ export default function TodoScreen() {
             }
           }
           return isValid ? (
-            todo.suggested_todo_week === week ? (
-              <div key={todo.id} className="full-width">
-                <div className="check-box-div My-todos">
-                  <div className={show ? `todo-content` : `todo-content minus`}>
-                    <p className="">{todo.suggested_todo_title}</p>
-                  </div>
-                  <div className="box-minus" onClick={() => handleRemove(todo)}>
-                    <div>
-                      <i className="fa fa-minus"></i>
-                    </div>
+            // todo.suggested_todo_week === WEEK ? (
+            <div key={todo.id} className="full-width">
+              <div className="check-box-div My-todos">
+                <div className={show ? `todo-content` : `todo-content minus`}>
+                  <p className="">{todo.suggested_todo_title}</p>
+                </div>
+                <div className="box-minus" onClick={() => handleRemove(todo)}>
+                  <div>
+                    <i className="fa fa-minus"></i>
                   </div>
                 </div>
               </div>
-            ) : null
-          ) : todo.suggested_todo_week === week ? (
+            </div>
+          ) : (
+            //  todo.suggested_todo_week === week ?
             <div className="full-width" key={todo.id}>
               <div className="My-todos">
                 <div className="todo-content">
@@ -147,7 +139,7 @@ export default function TodoScreen() {
                 </div>
               </div>
             </div>
-          ) : null;
+          );
         })
       ) : (
         <p>You are in offline Mode</p>
@@ -155,7 +147,7 @@ export default function TodoScreen() {
       <div className="week-container">
         <button className="week-checks" onClick={handleToggle}>
           <div></div>
-          <div>Week {week}</div>
+          <div>Week {suggestedTodoWeek}</div>
           <div>
             <KeyboardArrowDownSharpIcon />
           </div>

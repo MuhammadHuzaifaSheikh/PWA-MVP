@@ -1,7 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-    week: 1
+    week: 1,
+    day: 1,
+    suggestedTodoWeek: null,
+    myTodoWeek: null,
+
 };
 
 const weekSlice = createSlice({
@@ -9,11 +13,24 @@ const weekSlice = createSlice({
     initialState,
     reducers: {
         setWeek: (state, action) => {
+            console.log(action.payload)
             state.week = action.payload;
-        }
+        },
+        setDay: (state, action) => {
+            state.day = action.payload
+        },
+        setSuggestedWeek: (state, action) => {
+            console.log(action.payload)
+            state.suggestedTodoWeek = action.payload;
+        },
+        setMyTodoWeek: (state, action) => {
+            console.log(action.payload)
+            state.myTodoWeek = action.payload;
+        },
+
     },
 });
 
-export const { setWeek } = weekSlice.actions;
+export const { setWeek, setDay, setSuggestedWeek, setMyTodoWeek } = weekSlice.actions;
 
 export default weekSlice.reducer;

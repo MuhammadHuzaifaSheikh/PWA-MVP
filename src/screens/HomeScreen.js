@@ -2,27 +2,33 @@ import React, { useState, useRef, useEffect } from "react";
 import Card from "../components/Card/Card";
 import { Link } from "react-router-dom";
 import BottomNav from "../components/BottomNav/BottomNav";
-import { onSnapshot, collection } from "firebase/firestore";
+import { onSnapshot } from "firebase/firestore";
 import { useDispatch, useSelector } from "react-redux";
 import { setBlogs } from "../store/Slices/BlogSlice";
-import { setWeek } from "../store/Slices/WeekSlice";
+import { setSuggestedWeek } from "../store/Slices/WeekSlice";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { setWeek, setDay } from "../store/Slices/WeekSlice";
 import { db } from "../config/Firebase";
 
 function HomeScreen() {
   const currentDate = useRef();
   const dispatch = useDispatch();
-  const [DAYS, setDAYS] = useState([]);
+
+  const baby = useSelector((state) => state.baby.baby);
+  const blogs = useSelector((state) => state.blog.blogs);
   const { pregnancy_dueDate } = useSelector((state) => state.user);
+  const { week, day } = useSelector((state) => state.week);
+
+  const [DAYS, setDAYS] = useState([]);
+  const [currentDay, setCurrentDay] = React.useState();
+
   const [DATES, setDATES] = React.useState([]);
-  const [day, setDay] = React.useState();
-  const [WEEK, setWEEK] = React.useState();
-  const [selected, setSelected] = React.useState();
-  const [baby, setBaby] = React.useState([]);
-  const [blogs, setBlogss] = React.useState([]);
+  // const [WEEK, setWEEK] = React.useState();
+  const [selected, setSelected] = React.useState(1);
 
   const [allDays, setAllDays] = useState([]);
 
-  console.log(pregnancy_dueDate);
+  console.log(baby);
 
   useEffect(() => {
     const remainingDays = Math.ceil(
@@ -41,14 +47,15 @@ function HomeScreen() {
       DAYS.push(...dayNames);
     }
 
-    const week = Math.ceil(remainingDays / 7);
-    setDay(remainingDays);
-    setWEEK(week);
+    const weekCal = Math.ceil(remainingDays / 7);
+    dispatch(setDay(remainingDays));
+    setCurrentDay(remainingDays);
+
     setSelected(remainingDays);
-    dispatch(setWeek(week));
+    dispatch(setWeek(weekCal));
 
     let arr = [];
-    let a = week * 7;
+    let a = weekCal * 7;
 
     let days = [];
 
@@ -64,7 +71,6 @@ function HomeScreen() {
   }, [dispatch, pregnancy_dueDate]);
 
   useEffect(() => {
-    console.log(day);
     if (day && document.getElementById(day.toString())) {
       document.getElementById(day.toString()).scrollIntoView({
         behavior: "smooth",
@@ -74,39 +80,34 @@ function HomeScreen() {
   }, [allDays, day]);
 
   const handlePrevious = () => {
-    if (WEEK > 1) {
+    if (week > 1) {
       let arr = [];
-      const week = WEEK - 1;
-      let a = week * 7;
+      const weekVar = week - 1;
+      let a = weekVar * 7;
       for (let i = a - 6; i <= a; i++) {
         arr.push(i);
       }
       setDATES(arr);
-      setWEEK(WEEK - 1);
-      dispatch(setWeek(WEEK - 1));
-      console.log(WEEK * 7 - 6);
+      dispatch(setWeek(week - 1));
 
-      document.getElementById((WEEK * 7 - 13).toString()).scrollIntoView({
+      document.getElementById((weekVar * 7 - 13).toString()).scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
     }
   };
   const handleAgo = () => {
-    if (WEEK < 40) {
-      const week = WEEK + 1;
-      let a = week * 7;
+    if (week < 40) {
+      const weekVar = week + 1;
+      let a = weekVar * 7;
       let arr = [];
       for (let i = a - 6; i <= a; i++) {
         arr.push(i);
       }
       setDATES(arr);
-      setWEEK(WEEK + 1);
-      dispatch(setWeek(WEEK + 1));
+      dispatch(setWeek(week + 1));
 
-      console.log(WEEK * 7 - 6);
-
-      document.getElementById((WEEK * 7 + 6).toString()).scrollIntoView({
+      document.getElementById((week * 7 + 6).toString()).scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
@@ -115,31 +116,9 @@ function HomeScreen() {
 
   const handleSelectedChange = (date) => {
     setSelected(date);
-
-    console.log(Math.ceil(date / 7));
-
-    setWEEK(Math.ceil(date / 7));
+    dispatch(setDay(date));
+    dispatch(setWeek(Math.ceil(date / 7)));
   };
-
-  React.useEffect(() => {
-    onSnapshot(collection(db, "daily_articles"), (snapshot) =>
-      setBlogss(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })))
-    );
-    onSnapshot(collection(db, "baby_size"), (snapshot) =>
-      setBaby(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })))
-    );
-  }, []);
-
-  console.log("baby", baby);
-
-  if (blogs?.length > 0) {
-    dispatch(setBlogs(blogs));
-  }
-  //   if (baby?.length > 0) {
-  //     let filteredBaby = baby.find((baby) => baby.baby_week === WEEK);
-  //     setBaby(filteredBaby);
-  //     console.log("filteredBaby", filteredBaby);
-  //   }
 
   return (
     <div className="flex-1">
@@ -154,7 +133,7 @@ function HomeScreen() {
             ></i>
           </div>
           <div className="f">
-            <p>Week {pregnancy_dueDate ? WEEK : 1}</p>
+            <p>Week {pregnancy_dueDate ? week : 1}</p>
           </div>
           <div>
             <i
@@ -193,7 +172,7 @@ function HomeScreen() {
               <div key={i} id={e.toString()}>
                 <p
                   onClick={() => handleSelectedChange(e)}
-                  className={`dayNumberItem ${day === e && "purple"} ${
+                  className={`dayNumberItem ${currentDay === e && "purple"} ${
                     selected === e && "selected"
                   }`}
                 >
@@ -207,7 +186,7 @@ function HomeScreen() {
 
       <div className="blogs-container">
         <div className="img">
-          <img src={baby[0]?.baby_fruiteImg} alt="pic" />
+          <img src={baby?.baby_fruiteImg} alt="pic" />
         </div>
         <div className="babysize">
           <div>
@@ -219,7 +198,7 @@ function HomeScreen() {
                 <p>Length</p>
               </div>
               <div className="fit">
-                <h3>{baby[0]?.baby_length}</h3>
+                <h3>{baby?.baby_length}</h3>
               </div>
               <div className="fir2">
                 <h6>cm</h6>
@@ -230,7 +209,7 @@ function HomeScreen() {
                 <p>Weight</p>
               </div>
               <div className="fit">
-                <h3>{baby[0]?.baby_weight}</h3>
+                <h3>{baby?.baby_weight}</h3>
               </div>
               <div className="fir2">
                 <h6>g</h6>
@@ -244,16 +223,19 @@ function HomeScreen() {
         </div>
         {blogs.length > 0 ? (
           blogs?.map((blog, index) => {
-            return blog.article_day === selected ? (
+            return (
               <>
                 <Card blog={blog} key={index} />
               </>
-            ) : null;
+            );
           })
         ) : (
-          <div className="loader-container">
-            <div className="loader"></div>
-          </div>
+          <>
+            <p>No Article Found For Day {selected}</p>
+            <div className="loader-container">
+              <div className="loader"></div>
+            </div>
+          </>
         )}
       </div>
       <BottomNav />

@@ -12,9 +12,12 @@ import TaskScreen from "./screens/TaskScreen";
 import SettingScreen from "./screens/SettingScreen";
 import PrivacyPolicy from "./screens/PrivacyPolicy";
 import InstaScreen from "./screens/InstaScreen";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { setBlogs } from "./store/Slices/BlogSlice";
+import { setBaby } from "./store/Slices/BabySlice";
 import { doc, getDoc } from "firebase/firestore";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setSuggestedWeek, setMyTodoWeek } from "./store/Slices/WeekSlice";
 
 import {
   setUserId,
@@ -29,17 +32,21 @@ import {
 } from "./store/Slices/UserSlice";
 function App() {
   const dispatch = useDispatch();
+  const day = useSelector((state) => state.week.day);
+
+  const week = useSelector((state) => state.week.week);
   useEffect(() => {
     async function getUser() {
       const docRef = doc(db, "users", localStorage.getItem("userID"));
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        console.log("Document data:", docSnap.data());
         dispatch(setUserName(docSnap.data().username));
         dispatch(setAddToMyTask(docSnap.data().addToMyTasks));
         dispatch(setEmailAddress(docSnap.data().emailAddress));
         dispatch(setUserId(docSnap.data().id));
+        dispatch(setSuggestedWeek(week));
+        dispatch(setMyTodoWeek(week));
         dispatch(
           setPregnancyDueDate(
             docSnap.data().pregnancy_dueDate
@@ -83,6 +90,38 @@ function App() {
     }
     getUser();
   }, []);
+
+  useEffect(() => {
+    async function getDailyArticles() {
+      let arr = [];
+      const q = query(
+        collection(db, "daily_articles"),
+        where("article_day", "==", day)
+      );
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        arr.push({ id: doc.id, ...doc.data() });
+      });
+      dispatch(setBlogs(arr));
+    }
+    getDailyArticles();
+  }, [day]);
+
+  useEffect(() => {
+    async function getBabyDetails() {
+      const q = query(
+        collection(db, "baby_size"),
+        where("baby_week", "==", week)
+      );
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        console.log("baby size", doc.data());
+        dispatch(setBaby({ id: doc.id, ...doc.data() }));
+      });
+    }
+    getBabyDetails();
+  }, [week]);
+
   return (
     <div>
       <Routes>
