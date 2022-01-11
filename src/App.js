@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+
 // import { useSelector } from 'react-redux'
 import { db } from "./config/Firebase";
 import Login from "./authentication/Login";
@@ -38,70 +39,74 @@ function App() {
 
   useEffect(() => {
     async function getUser() {
-      const docRef = doc(db, "users", localStorage.getItem("userID"));
-      const docSnap = await getDoc(docRef);
+      if (localStorage.getItem("userID")) {
+        const docRef = doc(db, "users", localStorage.getItem("userID"));
+        const docSnap = await getDoc(docRef);
 
-      if (docSnap.exists()) {
-        console.log("Document data:", docSnap.data());
-        dispatch(setSuggestedWeek(week));
-        dispatch(setMyTodoWeek(week));
-      } else {
-        // doc.data() will be undefined in this case
-        console.log("No such document!");
+        if (docSnap.exists()) {
+          console.log("Document data:", docSnap.data());
+          dispatch(setSuggestedWeek(week));
+          dispatch(setMyTodoWeek(week));
+        } else {
+          // doc.data() will be undefined in this case
+          console.log("No such document!");
+        }
       }
     }
     getUser();
   }, []);
 
   useEffect(() => {
-    const unsub = onSnapshot(
-      doc(db, "users", localStorage.getItem("userID")),
-      (docSnap) => {
-        dispatch(setUserName(docSnap.data().username));
-        dispatch(setAddToMyTask(docSnap.data().addToMyTasks));
-        dispatch(setEmailAddress(docSnap.data().emailAddress));
-        dispatch(setUserId(docSnap.data().id));
+    if (localStorage.getItem("userID")) {
+      const unsub = onSnapshot(
+        doc(db, "users", localStorage.getItem("userID")),
+        (docSnap) => {
+          dispatch(setUserName(docSnap.data().username));
+          dispatch(setAddToMyTask(docSnap.data().addToMyTasks));
+          dispatch(setEmailAddress(docSnap.data().emailAddress));
+          dispatch(setUserId(docSnap.data().id));
 
-        dispatch(
-          setPregnancyDueDate(
-            docSnap.data().pregnancy_dueDate
-              ? docSnap.data().pregnancy_dueDate
-              : ""
-          )
-        );
-        dispatch(
-          setUserTodoss(
-            docSnap.data().user_todos ? docSnap.data().user_todos : []
-          )
-        );
-        dispatch(
-          setBabyName(
-            docSnap.data().pregnancy_babyName
-              ? docSnap.data().pregnancy_babyName
-              : ""
-          )
-        );
-        dispatch(
-          setBabyGender(
-            docSnap.data().pregnancy_babyGender
-              ? docSnap.data().pregnancy_babyGender
-              : ""
-          )
-        );
-        dispatch(
-          setBabyGender(
-            docSnap.data().pregnancy_babyGender
-              ? docSnap.data().pregnancy_babyGender
-              : ""
-          )
-        );
-        dispatch(
-          setFullName(docSnap.data().fullName ? docSnap.data().fullName : "")
-        );
-      }
-    );
+          dispatch(
+            setPregnancyDueDate(
+              docSnap.data().pregnancy_dueDate
+                ? docSnap.data().pregnancy_dueDate
+                : ""
+            )
+          );
+          dispatch(
+            setUserTodoss(
+              docSnap.data().user_todos ? docSnap.data().user_todos : []
+            )
+          );
+          dispatch(
+            setBabyName(
+              docSnap.data().pregnancy_babyName
+                ? docSnap.data().pregnancy_babyName
+                : ""
+            )
+          );
+          dispatch(
+            setBabyGender(
+              docSnap.data().pregnancy_babyGender
+                ? docSnap.data().pregnancy_babyGender
+                : ""
+            )
+          );
+          dispatch(
+            setBabyGender(
+              docSnap.data().pregnancy_babyGender
+                ? docSnap.data().pregnancy_babyGender
+                : ""
+            )
+          );
+          dispatch(
+            setFullName(docSnap.data().fullName ? docSnap.data().fullName : "")
+          );
+        }
+      );
 
-    return () => unsub();
+      return () => unsub();
+    }
   }, []);
 
   useEffect(() => {

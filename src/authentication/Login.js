@@ -32,8 +32,8 @@ export default function Login() {
     setLoading(true);
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        localStorage.setItem("userID", userCredential.user.uid)
-        getUser()
+        localStorage.setItem("userID", userCredential.user.uid);
+        getUser();
         setLoading(false);
       })
       .catch((error) => {
@@ -88,7 +88,7 @@ export default function Login() {
       dispatch(
         setFullName(docSnap.data().fullName ? docSnap.data().fullName : "")
       );
-      navigate("/")
+      navigate("/");
     } else {
       // doc.data() will be undefined in this case
       console.log("No such document!");
@@ -127,7 +127,6 @@ export default function Login() {
               required
               id="outlined-required"
               label="Email Address"
-              defaultValue="Hello World"
               type="email"
             />
           </div>
