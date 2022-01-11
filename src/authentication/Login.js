@@ -52,6 +52,7 @@ export default function Login() {
       dispatch(setAddToMyTask(docSnap.data().addToMyTasks));
       dispatch(setEmailAddress(docSnap.data().emailAddress));
       dispatch(setUserId(docSnap.data().id));
+
       dispatch(
         setPregnancyDueDate(
           docSnap.data().pregnancy_dueDate

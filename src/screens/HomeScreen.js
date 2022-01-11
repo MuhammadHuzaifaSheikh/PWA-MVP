@@ -28,7 +28,7 @@ function HomeScreen() {
 
   const [allDays, setAllDays] = useState([]);
 
-  console.log(baby);
+  console.log(currentDay);
 
   useEffect(() => {
     const remainingDays = Math.ceil(
@@ -48,7 +48,7 @@ function HomeScreen() {
     }
 
     const weekCal = Math.ceil(remainingDays / 7);
-    // dispatch(setDay(remainingDays));
+    dispatch(setDay(remainingDays));
     setCurrentDay(remainingDays);
 
     setSelected(remainingDays);
@@ -77,7 +77,7 @@ function HomeScreen() {
         block: "center",
       });
     }
-  }, [allDays, day]);
+  }, [allDays, day, currentDay]);
 
   const handlePrevious = () => {
     if (week > 1) {

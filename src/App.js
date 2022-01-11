@@ -18,7 +18,12 @@ import { setBlogs } from "./store/Slices/BlogSlice";
 import { setBaby } from "./store/Slices/BabySlice";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { useDispatch, useSelector } from "react-redux";
-import { setSuggestedWeek, setMyTodoWeek } from "./store/Slices/WeekSlice";
+import {
+  setSuggestedWeek,
+  setMyTodoWeek,
+  setWeek,
+  setDay,
+} from "./store/Slices/WeekSlice";
 
 import {
   setUserId,
@@ -34,6 +39,7 @@ import {
 function App() {
   const dispatch = useDispatch();
   const day = useSelector((state) => state.week.day);
+  const { pregnancy_dueDate } = useSelector((state) => state.user);
 
   const week = useSelector((state) => state.week.week);
 
@@ -47,6 +53,19 @@ function App() {
           console.log("Document data:", docSnap.data());
           dispatch(setSuggestedWeek(week));
           dispatch(setMyTodoWeek(week));
+
+          const remainingDays = Math.ceil(
+            new Date(
+              Date.now() - (pregnancy_dueDate - 280 * 24 * 60 * 60 * 1000)
+            ).getTime() /
+              1000 /
+              60 /
+              60 /
+              24 -
+              8
+          );
+
+          dispatch(setDay(remainingDays));
         } else {
           // doc.data() will be undefined in this case
           console.log("No such document!");

@@ -15,9 +15,12 @@ const weekSlice = createSlice({
         setWeek: (state, action) => {
             console.log(action.payload)
             state.week = action.payload;
+            state.suggestedTodoWeek = action.payload;
+            state.myTodoWeek = action.payload;
         },
         setDay: (state, action) => {
             state.day = action.payload
+            state.week = Math.ceil(action.payload / 7)
         },
         setSuggestedWeek: (state, action) => {
             console.log(action.payload)
